@@ -1,5 +1,3 @@
-# SMATH_HACKS PYTHON YIPPEEEEEE
-
 # Imports
 import sys
 from PyQt6.QtCore import Qt, QTimer
