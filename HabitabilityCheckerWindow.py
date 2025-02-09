@@ -1,7 +1,7 @@
 # SMATH_HACKS PYTHON YIPPEEEEEE
 
+# Imports
 import sys
-
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QApplication,
@@ -12,22 +12,29 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+# Defining txt file
+dataTxtFile = "SensorData.txt"
+
+# Defining plant data
 oakData = [-5, 35, 40, 50]
 grassData = [6, 35, 50, 70]
 cornData = [10, 30, 50, 80]
 riceData = [10, 38, 50, 90]
 soyData = [10, 30, 40, 75]
 
-# Subclass QMainWindow to customize your application's main window
+# Making main window subclass to be able to customize window
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Setting window title to project title
         self.setWindowTitle("Plant Habitability Calculator")
 
+        # Initial values for temperature and humidity so things don't get errors
         self.temp = 0.0
         self.hum = 0.0
 
+        # Making all window elements
         layout = QVBoxLayout()
         self.plantDropdown = QComboBox()
         self.plantDropdown.addItems(["None Selected", "Oak Tree", "Grass", "Corn", "Rice", "Soybeans"])
@@ -36,9 +43,11 @@ class MainWindow(QMainWindow):
         self.surviveLabel = QLabel("No plant selected.")
         self.rangeLabel = QLabel("")
 
+        # Updating dropdown menu selections
         self.plantDropdown.activated.connect(self.switch)
         self.plantDropdown.currentIndexChanged.connect(self.switch)
         
+        # Adding elements to the screen
         widgets = [
             self.plantDropdown,
             self.tempLabel,
@@ -46,26 +55,24 @@ class MainWindow(QMainWindow):
             self.surviveLabel,
             self.rangeLabel
         ]
-
         for w in widgets:
             layout.addWidget(w)
-
         widget = QWidget()
         widget.setLayout(layout)
-
-        # Set the central widget of the Window. Widget will expand
-        # to take up all the space in the window by default.
         self.setCentralWidget(widget)
 
+        # Adding loop so temperature and humidity updates if the txt file has updated
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(1000)
 
+    # Switches text of window labels when different dropdown menu selections are made
     def switch(self):
         text = "Error"
         rangeText = "Error"
         dataList = [-1, -1, -1, -1]
 
+        # Checks what menu item is picks and changes variables accordingly
         if self.plantDropdown.currentIndex() == 0:
             text = "No plant selected."
             self.rangeLabel.setText("")
@@ -105,25 +112,32 @@ class MainWindow(QMainWindow):
             rangeText = "Soy beans have"
             dataList = soyData
 
+        # Changing labels to new display
         self.surviveLabel.setText(text)
         if not self.plantDropdown.currentIndex() == 0:
             self.rangeLabel.setText(rangeText + " an ideal temperature range of " + str(dataList[0]) + "°C to " + str(dataList[1]) + "°C, \nand an ideal humidity range of " + str(dataList[2]) + "% to " + str(dataList[3]) + "%.")
 
+    # Updates everything, runs each QTimer loop
     def update(self):
-        f = open("SensorData.txt", "r")
+        # Opening txt file and reading last two lines
+        f = open(dataTxtFile, "r")
         dataValues = f.readlines()[-2:]
 
-        if len(dataValues) > 0:
+        # Checking if txt file has appropriate number of lines
+        if len(dataValues) > 1:
+            # Updating temperature and humidity values
             self.temp = float(dataValues[1].strip("\n"))
             self.hum = float(dataValues[0].strip("\n"))
 
+            # Updating text labels
             self.tempLabel.setText("Temperature: " + dataValues[1].strip('\n') + "°C")
             self.humLabel.setText("Humidity: " + dataValues[0].strip('\n') + "%")
 
+            # Checking plant habitability with new values
             self.switch()
 
+# PyQt configuration
 app = QApplication(sys.argv)
-
 window = MainWindow()
 window.show()
 app.exec()
